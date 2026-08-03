@@ -1,0 +1,85 @@
+<section class="page" aria-labelledby="budget-form-heading">
+  @if (isEditMode()) {
+    <h1 id="budget-form-heading">Edit Budget</h1>
+  } @else {
+    <h1 id="budget-form-heading">New Budget</h1>
+  }
+
+  @if (generalError()) {
+    <p class="form-error" role="alert">{{ generalError() }}</p>
+  }
+
+  @if (error()) {
+    <p class="error" role="alert">{{ error() }}</p>
+  }
+
+  @if (loadingData()) {
+    <p class="loading" aria-live="polite">Loading budget…</p>
+  } @else {
+    <form (ngSubmit)="submit()" class="form" [attr.aria-label]="isEditMode() ? 'Edit budget form' : 'Create budget form'">
+      <div class="form-group">
+        <label for="budget-category">Category</label>
+        <select
+          id="budget-category"
+          class="form-control"
+          [ngModel]="categoryId()"
+          (ngModelChange)="categoryId.set($event)"
+          name="categoryId"
+          required>
+          <option [ngValue]="null" disabled>Select a category</option>
+          @for (cat of categories(); track cat.id) {
+            <option [ngValue]="cat.id">{{ cat.name }}</option>
+          }
+        </select>
+        @if (getFieldError('categoryId')) {
+          <p class="field-error" role="alert">{{ getFieldError('categoryId') }}</p>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="budget-amount">Budget Amount</label>
+        <input
+          id="budget-amount"
+          type="number"
+          class="form-control"
+          [ngModel]="amount()"
+          (ngModelChange)="amount.set($event)"
+          name="amount"
+          required
+          min="0.01"
+          step="0.01"
+          placeholder="0.00" />
+        @if (getFieldError('amount')) {
+          <p class="field-error" role="alert">{{ getFieldError('amount') }}</p>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="budget-period">Period</label>
+        <input
+          id="budget-period"
+          type="month"
+          class="form-control"
+          [ngModel]="period()"
+          (ngModelChange)="period.set($event)"
+          name="period"
+          required />
+        @if (getFieldError('period')) {
+          <p class="field-error" role="alert">{{ getFieldError('period') }}</p>
+        }
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" [disabled]="submitting()">
+          @if (submitting()) {
+            Saving…
+          } @else if (isEditMode()) {
+            Update Budget
+          } @else {
+            Save Budget
+          }
+        </button>
+      </div>
+    </form>
+  }
+</section>

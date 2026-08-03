@@ -1,0 +1,56 @@
+<section class="page" aria-labelledby="comparison-heading">
+  <header class="page-header">
+    <h1 id="comparison-heading">Budget vs Actual</h1>
+  </header>
+
+  <div class="filter-bar">
+    <label for="comparison-period">Period</label>
+    <input
+      id="comparison-period"
+      type="month"
+      class="form-control"
+      [ngModel]="period()"
+      (ngModelChange)="period.set($event); loadComparison()"
+      name="period" />
+  </div>
+
+  @if (loading()) {
+    <p class="loading" aria-live="polite">Loading comparison…</p>
+  } @else if (error()) {
+    <p class="error" role="alert">{{ error() }}</p>
+  } @else if (items().length === 0) {
+    <p class="empty">No comparison data for this period. Set budgets and log expenses first.</p>
+  } @else {
+    <div class="comparison-grid" role="table" aria-label="Budget comparison table">
+      <div class="comparison-header" role="row">
+        <span role="columnheader">Category</span>
+        <span role="columnheader">Budgeted</span>
+        <span role="columnheader">Spent</span>
+        <span role="columnheader">Remaining</span>
+        <span role="columnheader">Used</span>
+        <span role="columnheader">Status</span>
+      </div>
+      @for (item of items(); track item.categoryId) {
+        <div class="comparison-row" [class]="statusClass(item.status)" role="row">
+          <span class="comparison-cell" role="cell">{{ item.categoryName }}</span>
+          <span class="comparison-cell" role="cell">${{ item.budgetedAmount | number:'1.2-2' }}</span>
+          <span class="comparison-cell" role="cell">${{ item.spentAmount | number:'1.2-2' }}</span>
+          <span class="comparison-cell" role="cell">${{ item.remainingAmount | number:'1.2-2' }}</span>
+          <span class="comparison-cell" role="cell">{{ item.percentUsed / 100 | percent:'1.0-0' }}</span>
+          <span class="comparison-cell" role="cell">
+            <span class="status-badge" [class]="'status-badge ' + statusClass(item.status)">
+              {{ statusLabel(item.status) }}
+            </span>
+          </span>
+          <div class="progress-bar-container" role="progressbar" [attr.aria-valuenow]="item.percentUsed" aria-valuemin="0" aria-valuemax="100">
+            <div
+              class="progress-bar-fill"
+              [class]="'progress-bar-fill ' + statusClass(item.status)"
+              [style.width.%]="progressWidth(item.percentUsed)">
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</section>

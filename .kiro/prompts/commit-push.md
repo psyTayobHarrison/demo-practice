@@ -1,0 +1,1 @@
+Run git status and show me what's changed. Then stage the relevant files, write a clear commit message summarizing the change, commit, and push to the current branch.

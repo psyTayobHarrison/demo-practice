@@ -1,0 +1,41 @@
+<section class="page" aria-labelledby="categories-heading">
+  <header class="page-header">
+    <h1 id="categories-heading">Categories</h1>
+    <a routerLink="/categories/new" class="btn btn-primary" aria-label="Add new category">+ New Category</a>
+  </header>
+
+  @if (loading()) {
+    <p class="loading" aria-live="polite">Loading categories…</p>
+  } @else if (error()) {
+    <p class="error" role="alert">{{ error() }}</p>
+  } @else if (categories().length === 0) {
+    <p class="empty">No categories yet. Create one to get started.</p>
+  } @else {
+    <ul class="list" role="list">
+      @for (category of categories(); track category.id) {
+        <li class="list-item">
+          <span class="list-item-name">{{ category.name }}</span>
+          <div class="list-item-actions">
+            <a
+              [routerLink]="['/categories/edit', category.id]"
+              class="btn btn-primary"
+              [attr.aria-label]="'Edit category ' + category.name">
+              Edit
+            </a>
+            <button
+              class="btn btn-danger"
+              (click)="deleteCategory(category.id)"
+              [disabled]="deletingId() === category.id"
+              [attr.aria-label]="'Delete category ' + category.name">
+              @if (deletingId() === category.id) {
+                Deleting…
+              } @else {
+                Delete
+              }
+            </button>
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</section>

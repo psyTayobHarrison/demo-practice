@@ -1,0 +1,50 @@
+<section class="page" aria-labelledby="category-form-heading">
+  @if (isEditMode()) {
+    <h1 id="category-form-heading">Edit Category</h1>
+  } @else {
+    <h1 id="category-form-heading">New Category</h1>
+  }
+
+  @if (generalError()) {
+    <p class="form-error" role="alert">{{ generalError() }}</p>
+  }
+
+  @if (error()) {
+    <p class="error" role="alert">{{ error() }}</p>
+  }
+
+  @if (loadingData()) {
+    <p class="loading" aria-live="polite">Loading category…</p>
+  } @else {
+    <form (ngSubmit)="submit()" class="form" [attr.aria-label]="isEditMode() ? 'Edit category form' : 'Create category form'">
+      <div class="form-group">
+        <label for="category-name">Category Name</label>
+        <input
+          id="category-name"
+          type="text"
+          class="form-control"
+          [ngModel]="name()"
+          (ngModelChange)="name.set($event)"
+          name="name"
+          required
+          placeholder="e.g. Groceries"
+          autocomplete="off" />
+        @if (getFieldError('name')) {
+          <p class="field-error" role="alert">{{ getFieldError('name') }}</p>
+        }
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" [disabled]="submitting()">
+          @if (submitting()) {
+            Saving…
+          } @else if (isEditMode()) {
+            Update Category
+          } @else {
+            Save Category
+          }
+        </button>
+      </div>
+    </form>
+  }
+</section>
