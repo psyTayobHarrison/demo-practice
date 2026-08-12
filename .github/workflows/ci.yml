@@ -1,4 +1,4 @@
-name: Kiro Review
+name: Kiro Code Review
 
 on:
   pull_request:
