@@ -1,0 +1,26 @@
+name: Kiro Review
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  kiro-review:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Kiro headless review
+        env:
+          KIRO_API_KEY: ${{ secrets.KIRO_API_KEY }}
+        run: |
+          kiro-cli chat --no-interactive --trust-tools=read,grep \
+            "Review the changes in this PR diff for correctness, security issues, and convention violations against .kiro/steering. Output as markdown." \
+            > review-output.md
+
+      - name: Post review as PR comment
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh pr comment ${{ github.event.pull_request.number }} --body-file review-output.md
