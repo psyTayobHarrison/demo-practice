@@ -12,6 +12,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install Kiro CLI
+        run: curl -fsSL https://cli.kiro.dev/install | bash
+
       - name: Run Kiro headless review
         env:
           KIRO_API_KEY: ${{ secrets.KIRO_API_KEY }}
