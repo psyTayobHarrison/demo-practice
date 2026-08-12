@@ -20,10 +20,19 @@ jobs:
           KIRO_API_KEY: ${{ secrets.KIRO_API_KEY }}
         run: |
           kiro-cli chat --no-interactive --trust-all-tools \
+            --output-format json --progress-file progress.ndjson \
             "Review the changes in this PR diff for correctness, security issues, and convention violations against .kiro/steering. Format the response as a GitHub PR review comment: start with a one-sentence summary, then one '### Issue N: <short title>' section per finding, each with a brief problem description (name the specific file/class/function), a short fenced code block if it helps illustrate the issue, and a '**What to do instead:**' line with the concrete fix. Max 5 issues. If there are no issues, respond with exactly: 'No issues found.' Do not narrate your review process, do not restate the full diff, do not include a closing summary or sign-off — output nothing but the summary sentence and the issue sections themselves." \
-            > review-output.md
+            > review-raw.json
+
+          jq -r '.response' review-raw.json > review-output.md
+
+          # Safety backstop: GitHub PR comments cap at 65536 chars
+          head -c 60000 review-output.md > review-output-trimmed.md
+          if [ "$(wc -c < review-output.md)" -gt 60000 ]; then
+            echo -e "\n\n_(truncated — response exceeded comment size limit)_" >> review-output-trimmed.md
+          fi
 
       - name: Post review as PR comment
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh pr comment ${{ github.event.pull_request.number }} --body-file review-output.md
+        run: gh pr comment ${{ github.event.pull_request.number }} --body-file review-output-trimmed.md
