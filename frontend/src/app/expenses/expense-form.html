@@ -29,28 +29,10 @@
           required
           min="0.01"
           step="0.01"
-          placeholder="0.00" />
+          placeholder="0.00"
+          autocomplete="off" />
         @if (getFieldError('amount')) {
           <p class="field-error" role="alert">{{ getFieldError('amount') }}</p>
-        }
-      </div>
-
-      <div class="form-group">
-        <label for="expense-category">Category</label>
-        <select
-          id="expense-category"
-          class="form-control"
-          [ngModel]="categoryId()"
-          (ngModelChange)="categoryId.set($event)"
-          name="categoryId"
-          required>
-          <option [ngValue]="null" disabled>Select a category</option>
-          @for (cat of categories(); track cat.id) {
-            <option [ngValue]="cat.id">{{ cat.name }}</option>
-          }
-        </select>
-        @if (getFieldError('categoryId')) {
-          <p class="field-error" role="alert">{{ getFieldError('categoryId') }}</p>
         }
       </div>
 
@@ -63,7 +45,8 @@
           [ngModel]="date()"
           (ngModelChange)="date.set($event)"
           name="date"
-          required />
+          required
+          autocomplete="off" />
         @if (getFieldError('date')) {
           <p class="field-error" role="alert">{{ getFieldError('date') }}</p>
         }
@@ -78,10 +61,29 @@
           [ngModel]="description()"
           (ngModelChange)="description.set($event)"
           name="description"
-          required
-          placeholder="e.g. Weekly groceries" />
+          placeholder="e.g. Weekly groceries"
+          autocomplete="off" />
         @if (getFieldError('description')) {
           <p class="field-error" role="alert">{{ getFieldError('description') }}</p>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="expense-category">Category</label>
+        <select
+          id="expense-category"
+          class="form-control"
+          [ngModel]="categoryId()"
+          (ngModelChange)="categoryId.set($event)"
+          name="categoryId"
+          required>
+          <option [ngValue]="null" disabled>Select a category</option>
+          @for (category of categories(); track category.id) {
+            <option [ngValue]="category.id">{{ category.name }}</option>
+          }
+        </select>
+        @if (getFieldError('categoryId')) {
+          <p class="field-error" role="alert">{{ getFieldError('categoryId') }}</p>
         }
       </div>
 

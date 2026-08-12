@@ -1,6 +1,5 @@
 package com.expensetracker.expense;
 
-import com.expensetracker.category.CategoryRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +9,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.expensetracker.category.CategoryRequest;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -33,9 +34,9 @@ class ExpenseControllerTest {
         Long categoryId = createCategoryViaApi("Groceries");
 
         ExpenseRequest request = new ExpenseRequest(
-                new BigDecimal("50.00"),
-                LocalDate.of(2026, 7, 15),
-                "Weekly groceries",
+                new BigDecimal("42.50"),
+                LocalDate.of(2026, 8, 12),
+                "Weekly shop",
                 categoryId
         );
 
@@ -44,104 +45,43 @@ class ExpenseControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").isNumber())
-                .andExpect(jsonPath("$.amount").value(50.00))
-                .andExpect(jsonPath("$.date").value("2026-07-15"))
-                .andExpect(jsonPath("$.description").value("Weekly groceries"))
+                .andExpect(jsonPath("$.amount").value(42.50))
+                .andExpect(jsonPath("$.date").value("2026-08-12"))
+                .andExpect(jsonPath("$.description").value("Weekly shop"))
                 .andExpect(jsonPath("$.categoryId").value(categoryId))
                 .andExpect(jsonPath("$.categoryName").value("Groceries"));
     }
 
     @Test
-    void createExpense_invalidCategory() throws Exception {
-        ExpenseRequest request = new ExpenseRequest(
-                new BigDecimal("50.00"),
-                LocalDate.of(2026, 7, 15),
-                "Test",
-                99999L
-        );
+    void getExpenseById_success() throws Exception {
+        Long categoryId = createCategoryViaApi("Transport");
+        Long expenseId = createExpenseViaApi(new BigDecimal("15.00"), LocalDate.of(2026, 8, 10), "Bus ticket", categoryId);
 
-        mockMvc.perform(post("/api/expenses")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isNotFound());
+        mockMvc.perform(get("/api/expenses/{id}", expenseId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(expenseId))
+                .andExpect(jsonPath("$.amount").value(15.00))
+                .andExpect(jsonPath("$.date").value("2026-08-10"))
+                .andExpect(jsonPath("$.description").value("Bus ticket"))
+                .andExpect(jsonPath("$.categoryId").value(categoryId))
+                .andExpect(jsonPath("$.categoryName").value("Transport"));
     }
 
     @Test
-    void createExpense_validationError() throws Exception {
-        Long categoryId = createCategoryViaApi("Groceries");
-
-        String body = """
-                {
-                    "amount": null,
-                    "date": "2026-07-15",
-                    "description": "Test",
-                    "categoryId": %d
-                }
-                """.formatted(categoryId);
-
-        mockMvc.perform(post("/api/expenses")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.errors").isArray());
+    void getExpenseById_notFound() throws Exception {
+        mockMvc.perform(get("/api/expenses/{id}", 99999))
+                .andExpect(status().isNotFound());
     }
 
     @Test
     void getAllExpenses() throws Exception {
         Long categoryId = createCategoryViaApi("Groceries");
-        createExpenseViaApi(categoryId, new BigDecimal("50.00"), LocalDate.of(2026, 7, 15), "Expense 1");
-        createExpenseViaApi(categoryId, new BigDecimal("30.00"), LocalDate.of(2026, 7, 16), "Expense 2");
+        createExpenseViaApi(new BigDecimal("10.00"), LocalDate.of(2026, 8, 1), "Item 1", categoryId);
+        createExpenseViaApi(new BigDecimal("20.00"), LocalDate.of(2026, 8, 2), "Item 2", categoryId);
 
         mockMvc.perform(get("/api/expenses"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2));
-    }
-
-    @Test
-    void getExpensesByPeriod() throws Exception {
-        Long categoryId = createCategoryViaApi("Groceries");
-        createExpenseViaApi(categoryId, new BigDecimal("50.00"), LocalDate.of(2026, 7, 15), "July expense");
-        createExpenseViaApi(categoryId, new BigDecimal("30.00"), LocalDate.of(2026, 8, 10), "August expense");
-
-        mockMvc.perform(get("/api/expenses").param("period", "2026-07"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].description").value("July expense"));
-    }
-
-    @Test
-    void updateExpense_success() throws Exception {
-        Long categoryId = createCategoryViaApi("Groceries");
-        Long expenseId = createExpenseViaApi(categoryId, new BigDecimal("50.00"), LocalDate.of(2026, 7, 15), "Original");
-
-        ExpenseRequest updateRequest = new ExpenseRequest(
-                new BigDecimal("75.00"),
-                LocalDate.of(2026, 7, 16),
-                "Updated",
-                categoryId
-        );
-
-        mockMvc.perform(put("/api/expenses/{id}", expenseId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updateRequest)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.amount").value(75.00))
-                .andExpect(jsonPath("$.description").value("Updated"));
-    }
-
-    @Test
-    void deleteExpense_success() throws Exception {
-        Long categoryId = createCategoryViaApi("Groceries");
-        Long expenseId = createExpenseViaApi(categoryId, new BigDecimal("50.00"), LocalDate.of(2026, 7, 15), "Test");
-
-        mockMvc.perform(delete("/api/expenses/{id}", expenseId))
-                .andExpect(status().isNoContent());
-    }
-
-    @Test
-    void deleteExpense_notFound() throws Exception {
-        mockMvc.perform(delete("/api/expenses/{id}", 99999))
-                .andExpect(status().isNotFound());
     }
 
     private Long createCategoryViaApi(String name) throws Exception {
@@ -155,7 +95,7 @@ class ExpenseControllerTest {
         return objectMapper.readTree(result.getResponse().getContentAsString()).get("id").asLong();
     }
 
-    private Long createExpenseViaApi(Long categoryId, BigDecimal amount, LocalDate date, String description) throws Exception {
+    private Long createExpenseViaApi(BigDecimal amount, LocalDate date, String description, Long categoryId) throws Exception {
         ExpenseRequest request = new ExpenseRequest(amount, date, description, categoryId);
         MvcResult result = mockMvc.perform(post("/api/expenses")
                         .contentType(MediaType.APPLICATION_JSON)

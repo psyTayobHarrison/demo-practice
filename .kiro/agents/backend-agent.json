@@ -2,15 +2,34 @@
   "name": "backend-agent",
   "description": "Java/Spring Boot backend agent scoped to backend/",
   "prompt": "You are a Java 21 and Spring Boot 3.x expert. You only work within the backend/ directory. Focus on Spring Web REST controllers, Spring Data JPA, Jakarta Bean Validation, and JUnit 5 testing. Follow modular monolith conventions: package-by-feature, DTOs at module boundaries, ISO-8601 dates, and modules only communicating through service public interfaces.",
-  "tools": ["read", "write", "shell", "grep", "glob"],
-  "allowedTools": ["read", "write", "grep", "glob"],
+  "tools": [
+    "glob",
+    "grep",
+    "read",
+    "shell",
+    "write"
+  ],
+  "allowedTools": [
+    "read",
+    "write",
+    "grep",
+    "glob"
+  ],
   "toolsSettings": {
     "write": {
-      "allowedPaths": ["./backend/**"],
-      "deniedPaths": ["./frontend/**"]
+      "allowedPaths": [
+        "./backend/**"
+      ],
+      "deniedPaths": [
+        "./frontend/**"
+      ]
     },
     "shell": {
-      "allowedCommands": ["mvn.*", "cd backend.*", "mkdir", "java",
+      "allowedCommands": [
+        "mvn.*",
+        "cd backend.*",
+        "mkdir",
+        "java",
         "ls",
         "cat",
         "pwd",
@@ -22,7 +41,8 @@
         "Move-Item",
         "Get-Content",
         "Set-Content",
-        "Get-ChildItem"],
+        "Get-ChildItem"
+      ],
       "autoAllowReadonly": true
     }
   },

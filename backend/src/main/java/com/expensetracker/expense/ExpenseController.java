@@ -18,10 +18,7 @@ public class ExpenseController {
     }
 
     @GetMapping
-    public List<ExpenseResponse> getAll(@RequestParam(required = false) String period) {
-        if (period != null && !period.isBlank()) {
-            return expenseService.findByPeriod(period);
-        }
+    public List<ExpenseResponse> getAll() {
         return expenseService.findAll();
     }
 

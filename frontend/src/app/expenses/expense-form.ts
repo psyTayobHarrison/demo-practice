@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal, computed, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
@@ -23,11 +23,11 @@ export class ExpenseForm implements OnInit {
 
   private readonly editId = signal<number | null>(null);
   protected readonly isEditMode = computed(() => this.editId() !== null);
-  protected readonly categories = signal<Category[]>([]);
   protected readonly amount = signal<number | null>(null);
-  protected readonly categoryId = signal<number | null>(null);
-  protected readonly date = signal(this.getTodayDate());
+  protected readonly date = signal('');
   protected readonly description = signal('');
+  protected readonly categoryId = signal<number | null>(null);
+  protected readonly categories = signal<Category[]>([]);
   protected readonly error = signal<string | null>(null);
   protected readonly submitting = signal(false);
   protected readonly loadingData = signal(false);
@@ -35,22 +35,31 @@ export class ExpenseForm implements OnInit {
   protected readonly generalError = signal<string | null>(null);
 
   ngOnInit(): void {
-    this.categoryService.getAll().subscribe({
-      next: (data) => this.categories.set(data),
-      error: () => this.error.set('Failed to load categories.'),
-    });
+    this.loadingData.set(true);
 
+    this.categoryService.getAll().subscribe({
+      next: (data) => {
+        this.categories.set(data);
+        this.loadEditData();
+      },
+      error: () => {
+        this.error.set('Failed to load categories.');
+        this.loadingData.set(false);
+      },
+    });
+  }
+
+  private loadEditData(): void {
     const idParam = this.route.snapshot.paramMap.get('id');
     if (idParam) {
       const id = Number(idParam);
       this.editId.set(id);
-      this.loadingData.set(true);
       this.expenseService.getById(id).subscribe({
         next: (expense) => {
           this.amount.set(expense.amount);
-          this.categoryId.set(expense.categoryId);
           this.date.set(expense.date);
           this.description.set(expense.description);
+          this.categoryId.set(expense.categoryId);
           this.loadingData.set(false);
         },
         error: () => {
@@ -58,25 +67,40 @@ export class ExpenseForm implements OnInit {
           this.loadingData.set(false);
         },
       });
+    } else {
+      this.loadingData.set(false);
     }
   }
 
   submit(): void {
     this.fieldErrors.set([]);
     this.generalError.set(null);
+    this.error.set(null);
 
-    if (!this.amount() || !this.categoryId() || !this.date() || !this.description().trim()) {
-      this.error.set('All fields are required.');
+    const amountValue = this.amount();
+    const dateValue = this.date().trim();
+    const categoryIdValue = this.categoryId();
+
+    if (!amountValue || amountValue <= 0) {
+      this.error.set('Amount must be greater than zero.');
+      return;
+    }
+    if (!dateValue) {
+      this.error.set('Date is required.');
+      return;
+    }
+    if (!categoryIdValue) {
+      this.error.set('Category is required.');
       return;
     }
 
-    this.error.set(null);
     this.submitting.set(true);
+
     const payload = {
-      amount: this.amount()!,
-      categoryId: this.categoryId()!,
-      date: this.date(),
+      amount: amountValue,
+      date: dateValue,
       description: this.description().trim(),
+      categoryId: categoryIdValue,
     };
 
     const request$ = this.isEditMode()
@@ -100,9 +124,5 @@ export class ExpenseForm implements OnInit {
   protected getFieldError(field: string): string | null {
     const found = this.fieldErrors().find((e) => e.field === field);
     return found ? found.message : null;
-  }
-
-  private getTodayDate(): string {
-    return new Date().toISOString().slice(0, 10);
   }
 }

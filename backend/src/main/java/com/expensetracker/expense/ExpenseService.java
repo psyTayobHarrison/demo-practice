@@ -6,13 +6,7 @@ import com.expensetracker.category.CategoryService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.YearMonth;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -27,14 +21,7 @@ public class ExpenseService {
     }
 
     public List<ExpenseResponse> findAll() {
-        return expenseRepository.findAll().stream()
-                .map(this::toResponse)
-                .toList();
-    }
-
-    public List<ExpenseResponse> findByPeriod(String period) {
-        LocalDate[] range = parsePeriod(period);
-        return expenseRepository.findByPeriod(range[0], range[1]).stream()
+        return expenseRepository.findAllByOrderByDateDesc().stream()
                 .map(this::toResponse)
                 .toList();
     }
@@ -69,27 +56,6 @@ public class ExpenseService {
             throw new ResourceNotFoundException("Expense not found with id: " + id);
         }
         expenseRepository.deleteById(id);
-    }
-
-    /**
-     * Returns total spent per category for a given period.
-     * Used by the comparison module.
-     */
-    public Map<Long, BigDecimal> getTotalSpentByCategoryForPeriod(String period) {
-        LocalDate[] range = parsePeriod(period);
-        List<Expense> expenses = expenseRepository.findByPeriod(range[0], range[1]);
-        return expenses.stream()
-                .collect(Collectors.groupingBy(
-                        e -> e.getCategory().getId(),
-                        Collectors.reducing(BigDecimal.ZERO, Expense::getAmount, BigDecimal::add)
-                ));
-    }
-
-    private LocalDate[] parsePeriod(String period) {
-        YearMonth yearMonth = YearMonth.parse(period, DateTimeFormatter.ofPattern("yyyy-MM"));
-        LocalDate startDate = yearMonth.atDay(1);
-        LocalDate endDate = yearMonth.plusMonths(1).atDay(1);
-        return new LocalDate[]{startDate, endDate};
     }
 
     private ExpenseResponse toResponse(Expense expense) {

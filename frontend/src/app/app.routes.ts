@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'expenses', pathMatch: 'full' },
+  { path: '', redirectTo: 'categories', pathMatch: 'full' },
   {
     path: 'categories',
     loadComponent: () =>
@@ -23,35 +23,13 @@ export const routes: Routes = [
       import('./expenses/expense-list').then((m) => m.ExpenseList),
   },
   {
-    path: 'expenses/edit/:id',
-    loadComponent: () =>
-      import('./expenses/expense-form').then((m) => m.ExpenseForm),
-  },
-  {
     path: 'expenses/new',
     loadComponent: () =>
       import('./expenses/expense-form').then((m) => m.ExpenseForm),
   },
   {
-    path: 'budgets',
+    path: 'expenses/edit/:id',
     loadComponent: () =>
-      import('./budgets/budget-list').then((m) => m.BudgetList),
-  },
-  {
-    path: 'budgets/edit/:id',
-    loadComponent: () =>
-      import('./budgets/budget-form').then((m) => m.BudgetForm),
-  },
-  {
-    path: 'budgets/new',
-    loadComponent: () =>
-      import('./budgets/budget-form').then((m) => m.BudgetForm),
-  },
-  {
-    path: 'comparison',
-    loadComponent: () =>
-      import('./comparison/comparison-dashboard').then(
-        (m) => m.ComparisonDashboard,
-      ),
+      import('./expenses/expense-form').then((m) => m.ExpenseForm),
   },
 ];
