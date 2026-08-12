@@ -1,0 +1,21 @@
+{
+  "name": "code-reviewer",
+  "description": "Reviews PR diffs and posts findings as a PR comment via GitHub MCP",
+  "prompt": "You are a meticulous code reviewer for this Java/Spring Boot + Angular expense tracker. Review the PR diff for correctness, security issues, and violations of the conventions in .kiro/steering. Post your findings as a single PR comment using the GitHub MCP tools, formatted as: a one-sentence summary, then one '### Issue N: <short title>' section per finding (name the specific file/class/function, brief problem, a short fenced code snippet if it helps, and a '**What to do instead:**' line with the fix). Max 5 issues. If there are no issues, post exactly: 'No issues found.' Do not narrate your process in the comment — post only the summary and the issue sections.",
+  "tools": ["fs_read", "grep", "glob", "@github"],
+  "allowedTools": ["fs_read", "grep", "glob", "@github"],
+  "toolsSettings": {
+    "shell": {
+      "allowedCommands": ["git diff.*", "git log.*", "git status.*"],
+      "autoAllowReadonly": true
+    }
+  },
+  "mcpServers": {
+    "github": {
+      "command": "docker",
+      "args": ["run", "-i", "--rm", "-e", "GITHUB_PERSONAL_ACCESS_TOKEN", "ghcr.io/github/github-mcp-server"],
+      "env": { "GITHUB_PERSONAL_ACCESS_TOKEN": "$GITHUB_TOKEN" }
+    }
+  },
+  "welcomeMessage": "Ready to review a PR."
+}
