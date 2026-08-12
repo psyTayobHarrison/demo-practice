@@ -15,17 +15,12 @@ jobs:
       - name: Install Kiro CLI
         run: curl -fsSL https://cli.kiro.dev/install | bash
 
-      - name: Debug secret presence
-        env:
-          KIRO_API_KEY: ${{ secrets.KIRO_API_KEY }}
-        run: |
-          if [ -z "$KIRO_API_KEY" ]; then echo "EMPTY"; else echo "SET, length=${#KIRO_API_KEY}"; fi
-
+  
       - name: Run Kiro headless review
         env:
           KIRO_API_KEY: ${{ secrets.KIRO_API_KEY }}
         run: |
-          kiro-cli chat --no-interactive --trust-tools=read,grep \
+          kiro-cli chat --no-interactive --trust-all-tools \
             "Review the changes in this PR diff for correctness, security issues, and convention violations against .kiro/steering. Output as markdown." \
             > review-output.md
 
