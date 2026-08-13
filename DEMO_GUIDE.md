@@ -2,7 +2,7 @@
 
 Target: ~15 min, 20 min hard ceiling. Audience: Kiro IDE users, CLI-curious but unfamiliar with commands.
 
-Opening line (no slides, ~30s): *"The IDE gives you one agent in one window. The CLI gives you agents you configure per task, running in parallel, resumable across days, scriptable in CI. Same engine, different unit of work."*
+Opening line (no slides, ~25-30s, say it standing at the terminal, no notes): *"Kiro CLI is the same agentic engine you already know from the IDE, but built for the terminal — which means it's built for automation. You configure agents with exactly the permissions and tools they need, hand them a task, and they can run in parallel, in the background, or inside a CI pipeline with nobody watching. Tonight I'll walk through how that actually works — agent config and permissions, planning before you build, running multiple agents on a task at once, verifying work automatically, and wiring all of it into a real GitHub Actions review — using this expense tracker as the thing we're actually building."*
 
 ---
 
