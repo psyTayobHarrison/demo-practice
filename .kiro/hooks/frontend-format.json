@@ -1,0 +1,13 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "frontend-format",
+      "trigger": "PostFileSave",
+      "matcher": "frontend/.*\\.(ts|html|scss)$",
+      "action": { "type": "command", "command": "cd frontend && npx prettier --write ." },
+      "timeout": 30,
+      "enabled": true
+    }
+  ]
+}

@@ -8,8 +8,8 @@ Opening line (no slides, ~30s): *"The IDE gives you one agent in one window. The
 
 ## Before you start (setup checklist)
 
-- [ ] Run `./reset-demo.sh` — clears H2 db, build artifacts, restores agent configs to v2, removes `.github/workflows/ci.yml` if present.
-  - **Known gap:** this does NOT remove live-built feature code (`backend/.../expense/*`, `frontend/.../expenses/*`, routes/models/nav edits) from a previous run. Plan: commit the clean stripped-scaffold state to `main`, branch off it for each demo/practice run, and reset via `git checkout main -- . && git clean -fd` instead once that's done. Until then, manually verify `expense/` and `expenses/` dirs are gone after reset.
+- [ ] Run `./reset-demo.sh` — clears H2 db, build artifacts, restores agent configs to v2. **Does NOT touch `.github/workflows/ci.yml`** — that's the real, working `Kiro Code Review` workflow now, not throwaway demo content, so it's deliberately left alone.
+  - **Known gap:** the script does NOT remove live-built feature code (`backend/.../expense/*`, `frontend/.../expenses/*`, routes/models/nav edits) from a previous run either. Now that the clean skeleton is merged to `main`, reset via `git checkout main -- . && git clean -fd` instead for anything beyond what the script covers.
 - [ ] Confirm `.kiro/agents/backend-agent.json` / `frontend-agent.json` are v2 shape (no `permissions` block) — should be automatic via reset script.
 - [ ] Confirm `backend/src/main/resources/application.yml` DB URL includes `;AUTO_SERVER=TRUE` (needed so a spawned seed task and the running app can both touch the H2 file concurrently without a lock error). This has reverted on its own before — **double check it's actually there before you start.**
 - [ ] Confirm `KIRO_API_KEY` exists as a **repository** secret (not environment-scoped) at `https://github.com/psyTayobHarrison/demo-practice/settings/secrets/actions`, name matches exactly.
