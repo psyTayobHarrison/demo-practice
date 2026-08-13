@@ -1,7 +1,9 @@
 <section class="page" aria-labelledby="categories-heading">
   <header class="page-header">
     <h1 id="categories-heading">Categories</h1>
-    <a routerLink="/categories/new" class="btn btn-primary" aria-label="Add new category">+ New Category</a>
+    <a routerLink="/categories/new" class="btn btn-primary" aria-label="Add new category"
+      >+ New Category</a
+    >
   </header>
 
   @if (loading()) {
@@ -19,14 +21,16 @@
             <a
               [routerLink]="['/categories/edit', category.id]"
               class="btn btn-primary"
-              [attr.aria-label]="'Edit category ' + category.name">
+              [attr.aria-label]="'Edit category ' + category.name"
+            >
               Edit
             </a>
             <button
               class="btn btn-danger"
               (click)="deleteCategory(category.id)"
               [disabled]="deletingId() === category.id"
-              [attr.aria-label]="'Delete category ' + category.name">
+              [attr.aria-label]="'Delete category ' + category.name"
+            >
               @if (deletingId() === category.id) {
                 Deleting…
               } @else {

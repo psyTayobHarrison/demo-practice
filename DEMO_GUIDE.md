@@ -42,6 +42,61 @@ Show the diff — introduces `permissions.rules` (capability/match/effect) + `po
 
 **Clarify `/model` vs `/agent`:** *"`/agent swap` changes which configured identity — prompt, tools, permissions — is active. `/model` changes which LLM answers. Different levers."*
 
+### Hooks: v2 vs v3, same hook side by side
+
+Real files in this repo, not staged — same intent both ways: auto-run Prettier when the frontend agent writes a file. Payoff is visible on screen (messy → tidy), not just an admin-y log line.
+
+**Confirmed v2 CLI trigger set (camelCase, five total, no more, no less):** `agentSpawn`, `userPromptSubmit`, `preToolUse`, `postToolUse`, `stop`. **There is no dedicated file-save trigger in v2** — to react to a write, you match `postToolUse` against the write tool itself, not a file-lifecycle event. (Earlier draft of this guide used a fabricated `onFileSave` trigger — corrected.)
+
+**v2 — embedded in `.kiro/agents/frontend-agent.json`. Confirmed live** (this got auto-corrected in the actual file when tested — my first draft's shape, an array of `{trigger, matcher, match, command}` objects, was wrong; real shape is an **object keyed by trigger name**, and there's no separate file-path `match` field at all — just `matcher` + `command`):
+```json
+"hooks": {
+  "postToolUse": [
+    {
+      "matcher": "write",
+      "command": "cd frontend; npx prettier --write ."
+    }
+  ]
+}
+```
+Note the corrected version also uses `;` not `&&` between commands — unclear if that's a hard requirement or just what got auto-applied; keep it as-is since it's confirmed working shape, not a hypothesis.
+
+**Real bug found and fixed while testing this:** the hook didn't fire the first time — not a hooks problem at all, a permissions one. `frontend-agent`'s `shell.allowedCommands` never had `npx.*` listed, **and `allowedTools` was missing `shell` entirely** (pre-existing gap in the original scaffold, not something introduced by the hook — just never exercised until now, since nothing had asked this agent to run a shell command before). Both are fixed now (`shell` added to `allowedTools`, `npx.*` added to `allowedCommands`). Good live material: this is the direct flip side of the CI `--trust-all-tools` story — there, blanket trust made the allowlist decorative; here, with no blanket trust flag active, the allowlist genuinely blocked an unlisted command. Both halves of the same mechanism, worth showing back to back if you have the time.
+
+**v3 — standalone file at `.kiro/hooks/frontend-format.json`:**
+```json
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "frontend-format",
+      "trigger": "PostFileSave",
+      "matcher": "frontend/.*\\.(ts|html|scss)$",
+      "action": { "type": "command", "command": "cd frontend && npx prettier --write ." },
+      "timeout": 30,
+      "enabled": true
+    }
+  ]
+}
+```
+
+**Prettier is installed as a real devDependency now** (`frontend/package.json`, added ahead of time specifically so this doesn't cold-pull over `npx` mid-demo) — confirmed working locally (`npx prettier --version` → 3.9.6, `--check` against real source ran clean, flagged 13 files as unformatted as expected, no errors). `.prettierrc` already existed in the repo (100 char width, single quotes, Angular parser for `.html`) — the hook just makes it automatic instead of a manual step.
+
+**Multi-fire caveat:** if frontend-agent writes 5 component files in one turn, this fires 5 times, each re-formatting the whole `frontend/` tree (not just the one changed file — there's no confirmed way to interpolate the specific changed path into the command). Redundant but harmless here, since Prettier is idempotent and fast — repeated runs just no-op quickly on already-formatted files. That's actually a nice illustration of *why* v3's task-level hooks matter more for some actions than others: cheap-and-repeated (Prettier) is fine as a per-file hook, expensive-and-repeated (a full compile, a test run) is exactly the case `PreTaskExec`/`PostTaskExec` were added to solve.
+
+**Confirmed v3 trigger set, ten total:** `SessionStart`, `Stop`, `UserPromptSubmit`, `PreToolUse`, `PostToolUse`, `PreTaskExec`, `PostTaskExec`, `PostFileCreate`, `PostFileSave`, `PostFileDelete`.
+
+**What actually changed, bullet by bullet:**
+- **Location:** embedded inside the agent's own JSON (v2) → standalone file at `.kiro/hooks/<id>.json` (v3). Hooks are no longer tied to a single agent's config — they live independently.
+- **Not just casing — some triggers were renamed outright, not just re-cased.** Confirmed: `agentSpawn` → `SessionStart` (different word, not a case change). Don't assume every v2 trigger has a same-named PascalCase twin.
+- **v3 added dedicated file-lifecycle triggers** (`PostFileCreate`, `PostFileSave`, `PostFileDelete`) that v2 never had — v2 could only approximate a file-save reaction by matching `postToolUse` against the write tool name, a blunter instrument (fires for *any* write, not specifically a "save").
+- **v3 added task-level hooks** (`PreTaskExec`/`PostTaskExec`) specifically to solve the multi-fire problem above — v2 had no equivalent, no way to get task-level granularity at all.
+- **v3 hooks can block.** `PreToolUse`, `UserPromptSubmit`, and `PreTaskExec` support blocking — a command action exiting with code 2 stops the operation and returns stderr to the agent. Real validation-gate behavior, not just a reactive log. No evidence v2's trigger set supports blocking at all.
+- **Schema is versioned** (`"version": "v1"`) in v3 — the file format itself can evolve without breaking old hooks.
+- **Two action types in v3**: `"type": "command"` (shell) or `"type": "agent"` (a prompt handed to the agent) — v2's embedded shape only really supports a shell command per hook, no agent-prompt action type.
+
+Field names beyond the confirmed v2 trigger list (`matcher`/`match`/`command` shape) are still my best reconstruction of "embedded in agent config" — the trigger name itself is sourced, the surrounding schema isn't. Confirm it parses before relying on it live.
+
 ---
 
 ## Beat 2 — `/plan` (~1:30)
@@ -226,30 +281,30 @@ jobs:
       - name: Install Kiro CLI
         run: curl -fsSL https://cli.kiro.dev/install | bash
 
-      - name: Run Kiro headless review
+      - name: Run Kiro headless review (agent posts its own PR comment via gh CLI)
         env:
           KIRO_API_KEY: ${{ secrets.KIRO_API_KEY }}
-        run: |
-          kiro-cli chat --no-interactive --trust-all-tools \
-            "Review the changes in this PR diff for correctness, security issues, and convention violations against .kiro/steering. Format the response as a GitHub PR review comment: start with a one-sentence summary, then one '### Issue N: <short title>' section per finding, each with a brief problem description (name the specific file/class/function), a short fenced code block if it helps illustrate the issue, and a '**What to do instead:**' line with the concrete fix. Max 5 issues. If there are no issues, respond with exactly: 'No issues found.' Do not narrate your review process, do not restate the full diff, do not include a closing summary or sign-off — output nothing but the summary sentence and the issue sections themselves." \
-            > review-output.md
-
-      - name: Post review as PR comment
-        env:
           GH_TOKEN: ${{ github.token }}
-        run: gh pr comment ${{ github.event.pull_request.number }} --body-file review-output.md
+        run: |
+          kiro-cli chat --no-interactive --trust-all-tools --agent code-reviewer \
+            "Review PR #${{ github.event.pull_request.number }} in ${{ github.repository }} and post your findings as a comment on it using the gh CLI."
 ```
+
+Agent config at `.kiro/agents/code-reviewer.json` — no GitHub MCP dependency (see below for why), `tools: ["fs_read","grep","glob","shell"]`, shell allowlist scoped to `gh pr view/diff/comment` plus read-only git commands, prompt instructs it to fetch the diff itself, review against `.kiro/steering`, and post the comment itself via `gh pr comment` (summary + `### Issue N` sections + `**What to do instead:**`, max 5 issues, stay under 60k chars).
 
 **Timing risk:** a real Actions run takes 1-3+ min (runner queue, checkout, install, review, post). **Trigger this early** (open the PR right after beat 4's build finishes), keep going with other beats, reveal the posted comment near the end — same "start it, walk away, come back" pattern as `/spawn`.
 
-**Talking point (real, not staged):** `--trust-tools=read,grep` actually failed on this exact workflow during rehearsal because reviewing a diff needed shell access it wasn't granted — switched to `--trust-all-tools`. Good live example of the same scoped-vs-broad tradeoff from beat 1/4, this time with a real failure behind it.
+**Talking point (real, not staged):** `--trust-tools=read,grep` actually failed on this exact workflow during rehearsal because reviewing a diff needed shell access it wasn't granted — switched to `--trust-all-tools`. Good live example of the same scoped-vs-broad tradeoff from beat 1/4, this time with a real failure behind it. **Second correction to make out loud if asked:** `--trust-all-tools` overrides `toolsSettings`/`permissions.rules` allowlists *completely*, for any tool — confirmed directly from a run's own warning output (`"You have trusted execute_bash tool, which overrides the toolsSettings: allowedCommands"`). So the scoped git-only allowlist on `code-reviewer` is documentation of intent, not enforcement, as long as `--trust-all-tools` stays on the command line. Don't claim it as a real security boundary in this configuration.
 
 **Be precise:** this has no relationship to the crew monitor from beat 4 — it's a separate invocation model running on GitHub's infrastructure, not something the local session is tracking.
+
+**GitHub MCP does not currently work in headless mode** — tried it, got `Failed to retrieve MCP settings; MCP functionality disabled` consistently, including in an *independently confirmed working* example from a different project that also hit this exact warning. That project's agent worked anyway because it had `shell` access and fell back to the plain `gh` CLI — which is exactly the pattern `code-reviewer` now uses. If asked "can headless mode use MCP servers," the honest answer is "not reliably, as of this testing — plan around `gh`/shell instead." Root cause of the MCP failure itself is still unknown, don't speculate on it live.
 
 **Known setup gotchas (already solved, but could recur):**
 - `kiro-cli` is not preinstalled on the runner — needs the explicit `curl -fsSL https://cli.kiro.dev/install | bash` step.
 - `KIRO_API_KEY` not arriving silently falls through to an interactive/device-flow auth error (`Failed to open browser for authentication`) — doesn't mention API keys at all, easy to misread as "API key auth isn't supported." It just means the key never reached the process. Checklist when this happens: (1) is this a fresh run after adding the secret, (2) exact name match, (3) **repository secret vs environment secret** — this was the actual root cause last time, (4) is the PR from a fork (fork PRs never get secrets).
 - Debug trick if stuck again: temporary step printing `SET, length=N` / `EMPTY` for the env var, without leaking the value.
+- If the agent needs to run `gh` itself (not just the workflow), **`GH_TOKEN` must be in that step's own `env:` block** — it silently can't authenticate otherwise, no loud error, it just fails to act.
 
 ---
 

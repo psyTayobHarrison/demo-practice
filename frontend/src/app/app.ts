@@ -1,3 +1,4 @@
+// Hook trigger: 2026-08-13T08:34
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 

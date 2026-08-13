@@ -16,8 +16,4 @@ cp .kiro/agents/.originals/backend-agent.v2.json .kiro/agents/backend-agent.json
 cp .kiro/agents/.originals/frontend-agent.v2.json .kiro/agents/frontend-agent.json
 echo "  - restored backend-agent.json / frontend-agent.json to v2 shape"
 
-# CI workflow (in case /spawn created it)
-rm -f .github/workflows/ci.yml
-echo "  - removed .github/workflows/ci.yml"
-
 echo "Done. Ready for another run."

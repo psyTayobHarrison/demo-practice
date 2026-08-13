@@ -5,7 +5,10 @@ export interface FieldError {
   message: string;
 }
 
-export function parseServerErrors(err: HttpErrorResponse): { fieldErrors: FieldError[]; generalError: string | null } {
+export function parseServerErrors(err: HttpErrorResponse): {
+  fieldErrors: FieldError[];
+  generalError: string | null;
+} {
   const body = err.error;
   if (body?.errors && Array.isArray(body.errors)) {
     return { fieldErrors: body.errors, generalError: null };

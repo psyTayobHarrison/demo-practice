@@ -2,53 +2,37 @@
   "name": "frontend-agent",
   "description": "Angular frontend agent scoped to frontend/",
   "prompt": "You are an Angular 21 expert. You only work within the frontend/ directory. Use standalone components (no NgModules), signals for state, OnPush change detection, SCSS, and mobile-first responsive design. Ensure accessibility: labels, focus states, semantic HTML. Use the Angular CLI for generation and testing.",
-  "tools": [
-    "glob",
-    "grep",
-    "read",
-    "shell",
-    "write"
-  ],
-  "allowedTools": [
-    "read",
-    "write",
-    "grep",
-    "glob"
-  ],
+  "tools": ["read", "write", "shell", "grep", "glob"],
+  "allowedTools": ["read", "write", "grep", "glob", "shell"],
   "toolsSettings": {
     "write": {
-      "allowedPaths": [
-        "./frontend/**"
-      ],
-      "deniedPaths": [
-        "./backend/**"
-      ]
+      "allowedPaths": ["./frontend/**"],
+      "deniedPaths": ["./backend/**"]
     },
     "shell": {
-      "allowedCommands": [
-        "ng.*",
-        "npm.*",
-        "cd frontend.*",
-        "mkdir",
-        "ls",
-        "cat",
-        "pwd",
-        "dir",
-        "Test-Path",
+      "allowedCommands": ["ng.*", "npm.*", "cd frontend.*", "mkdir", "ls", "cat", "pwd", "dir", "Test-Path",
         "New-Item",
         "Remove-Item",
         "Copy-Item",
         "Move-Item",
         "Get-Content",
         "Set-Content",
-        "Get-ChildItem"
-      ],
+        "Get-ChildItem",
+        "npx.*"],
       "autoAllowReadonly": true
     }
   },
   "resources": [
     "file://frontend/angular.json"
   ],
+  "hooks": {
+    "postToolUse": [
+      {
+        "matcher": "write",
+        "command": "cd frontend; npx prettier --write ."
+      }
+    ]
+  },
   "welcomeMessage": "Ready to help with the Angular frontend.",
   "keyboardShortcut": "ctrl+shift+f"
 }
