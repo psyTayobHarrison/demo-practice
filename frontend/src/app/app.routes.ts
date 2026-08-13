@@ -14,4 +14,16 @@ export const routes: Routes = [
     path: 'categories/new',
     loadComponent: () => import('./categories/category-form').then((m) => m.CategoryForm),
   },
+  {
+    path: 'expenses',
+    loadComponent: () => import('./expenses/expense-list').then((m) => m.ExpenseList),
+  },
+  {
+    path: 'expenses/edit/:id',
+    loadComponent: () => import('./expenses/expense-form').then((m) => m.ExpenseForm),
+  },
+  {
+    path: 'expenses/new',
+    loadComponent: () => import('./expenses/expense-form').then((m) => m.ExpenseForm),
+  },
 ];
