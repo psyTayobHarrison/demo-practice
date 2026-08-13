@@ -1,4 +1,11 @@
-import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import {
+  Component,
+  inject,
+  signal,
+  computed,
+  OnInit,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
@@ -70,7 +77,9 @@ export class CategoryForm implements OnInit {
         this.fieldErrors.set(parsed.fieldErrors);
         this.generalError.set(parsed.generalError);
         if (!parsed.fieldErrors.length && !parsed.generalError) {
-          this.error.set(this.isEditMode() ? 'Failed to update category.' : 'Failed to create category.');
+          this.error.set(
+            this.isEditMode() ? 'Failed to update category.' : 'Failed to create category.',
+          );
         }
         this.submitting.set(false);
       },

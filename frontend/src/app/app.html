@@ -1,20 +1,18 @@
 <header class="app-header">
   <nav class="nav" aria-label="Main navigation">
-    <a routerLink="/" class="nav-brand">Expense Tracker</a>
-    <ul class="nav-links" role="list">
-      <li>
-        <a routerLink="/expenses" routerLinkActive="active" aria-label="Expenses">Expenses</a>
-      </li>
-      <li>
-        <a routerLink="/budgets" routerLinkActive="active" aria-label="Budgets">Budgets</a>
-      </li>
-      <li>
-        <a routerLink="/categories" routerLinkActive="active" aria-label="Categories">Categories</a>
-      </li>
-      <li>
-        <a routerLink="/comparison" routerLinkActive="active" aria-label="Comparison">Comparison</a>
-      </li>
-    </ul>
+    <div class="nav-left">
+      <span class="nav-logo" aria-hidden="true">L</span>
+      <a routerLink="/" class="nav-brand">Ledger</a>
+      <ul class="nav-links" role="list">
+        <li>
+          <a routerLink="/categories" routerLinkActive="active" aria-label="Categories">Categories</a>
+        </li>
+      </ul>
+    </div>
+    <div class="nav-right">
+      <span class="nav-user-name">Alex Moreau</span>
+      <span class="nav-avatar" aria-hidden="true">AM</span>
+    </div>
   </nav>
 </header>
 

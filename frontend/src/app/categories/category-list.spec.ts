@@ -12,11 +12,7 @@ describe('CategoryList', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [CategoryList],
-      providers: [
-        provideHttpClient(),
-        provideHttpClientTesting(),
-        provideRouter([]),
-      ],
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     }).compileComponents();
 
     httpTesting = TestBed.inject(HttpTestingController);

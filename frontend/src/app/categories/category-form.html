@@ -16,7 +16,11 @@
   @if (loadingData()) {
     <p class="loading" aria-live="polite">Loading category…</p>
   } @else {
-    <form (ngSubmit)="submit()" class="form" [attr.aria-label]="isEditMode() ? 'Edit category form' : 'Create category form'">
+    <form
+      (ngSubmit)="submit()"
+      class="form"
+      [attr.aria-label]="isEditMode() ? 'Edit category form' : 'Create category form'"
+    >
       <div class="form-group">
         <label for="category-name">Category Name</label>
         <input
@@ -28,7 +32,8 @@
           name="name"
           required
           placeholder="e.g. Groceries"
-          autocomplete="off" />
+          autocomplete="off"
+        />
         @if (getFieldError('name')) {
           <p class="field-error" role="alert">{{ getFieldError('name') }}</p>
         }

@@ -1,0 +1,24 @@
+name: Kiro Code Review
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  kiro-review:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Kiro CLI
+        run: curl -fsSL https://cli.kiro.dev/install | bash
+
+      - name: Run Kiro headless review (agent posts its own PR comment via gh CLI)
+        env:
+          KIRO_API_KEY: ${{ secrets.KIRO_API_KEY }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          kiro-cli chat --no-interactive --trust-all-tools --agent code-reviewer \
+            "Review PR #${{ github.event.pull_request.number }} in ${{ github.repository }} and post your findings as a comment on it using the gh CLI."

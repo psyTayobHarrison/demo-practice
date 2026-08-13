@@ -6,25 +6,29 @@
 }
 
 :root {
-  --color-primary: #1a73e8;
-  --color-primary-hover: #1557b0;
+  --color-primary: #1a5c4c;
+  --color-primary-hover: #14473a;
+  --color-primary-light: #2d7a66;
   --color-danger: #dc3545;
   --color-danger-hover: #c82333;
-  --color-bg: #f8f9fa;
+  --color-bg: #f5f2eb;
   --color-surface: #ffffff;
-  --color-text: #212529;
-  --color-text-muted: #6c757d;
-  --border-color: #dee2e6;
-  --border-radius: 6px;
-  --shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --color-text: #2d2d2d;
+  --color-text-muted: #6b7280;
+  --color-header-bg: #1a3a3a;
+  --border-color: #e2ddd5;
+  --border-radius: 8px;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --font-family:
+    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    sans-serif;
 }
 
 html,
 body {
   margin: 0;
   padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
-    sans-serif;
+  font-family: var(--font-family);
   font-size: 16px;
   line-height: 1.5;
   color: var(--color-text);
@@ -142,12 +146,14 @@ body {
   background-color: var(--color-surface);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 
   &:focus {
     outline: none;
     border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.2);
+    box-shadow: 0 0 0 3px rgba(26, 92, 76, 0.2);
   }
 }
 
@@ -166,7 +172,9 @@ body {
   border-radius: var(--border-radius);
   cursor: pointer;
   text-decoration: none;
-  transition: background-color 0.2s, box-shadow 0.2s;
+  transition:
+    background-color 0.2s,
+    box-shadow 0.2s;
 
   &:focus-visible {
     outline: 2px solid var(--color-primary);
